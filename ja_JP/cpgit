@@ -2,9 +2,40 @@
 
 set -e
 
+VERSION="1.1"
+
+# ヘルプメッセージ
+show_help() {
+    cat << EOF
+使用方法: cpgit [オプション] <コピー元フォルダ> <コピー先フォルダ>
+
+.gitignoreに指定されたファイルを除外しつつ、.gitの履歴やサブモジュールを保持してGitリポジトリをコピーします。
+
+オプション:
+  -h, --help     ヘルプメッセージを表示して終了
+  -v, --version  バージョン情報を表示して終了
+
+使用例:
+  cpgit my-repo my-repo-copy
+EOF
+}
+
+# オプション解析
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "cpgit バージョン $VERSION"
+        exit 0
+        ;;
+esac
+
 # 引数チェック
 if [ "$#" -ne 2 ]; then
-    echo "使用方法: $0 <コピー元フォルダ> <コピー先フォルダ>" >&2
+    echo "エラー: 引数の数が正しくありません。" >&2
+    show_help >&2
     exit 1
 fi
 
@@ -29,7 +60,7 @@ if [ -e "$DEST" ]; then
     exit 1
 fi
 
-# コピー先を絶対パスに変換（cd 対策）
+# コピー先を絶対パスに変換
 DEST_ABS="$(mkdir -p "$DEST" && cd "$DEST" && pwd)"
 
 # 1. Gitの管理対象ファイルのみを展開（サブモジュールも再帰的に展開）

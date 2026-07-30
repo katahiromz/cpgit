@@ -2,9 +2,40 @@
 
 set -e
 
+VERSION="1.1"
+
+# Hilfe-Nachricht
+show_help() {
+    cat << EOF
+Verwendung: cpgit [OPTIONEN] <Quellverzeichnis> <Zielverzeichnis>
+
+Kopiert ein Git-Repository unter Ausschluss ignorierter Dateien, während der .git-Verlauf und Submodule erhalten bleiben.
+
+Optionen:
+  -h, --help     Zeigt diese Hilfe an und beendet das Programm
+  -v, --version  Zeigt Versionsinformationen an und beendet das Programm
+
+Beispiel:
+  cpgit mein-repo mein-repo-kopie
+EOF
+}
+
+# Optionen parsen
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "cpgit Version $VERSION"
+        exit 0
+        ;;
+esac
+
 # Argumente überprüfen
 if [ "$#" -ne 2 ]; then
-    echo "Verwendung: $0 <Quellverzeichnis> <Zielverzeichnis>" >&2
+    echo "Fehler: Ungültige Anzahl von Argumenten." >&2
+    show_help >&2
     exit 1
 fi
 

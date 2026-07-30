@@ -2,9 +2,40 @@
 
 set -e
 
+VERSION="1.1"
+
+# Messaggio di aiuto
+show_help() {
+    cat << EOF
+Uso: cpgit [OPZIONI] <cartella_origine> <cartella_destinazione>
+
+Copia un repository Git escludendo i file ignorati, mantenendo la cronologia .git e i sottomoduli.
+
+Opzioni:
+  -h, --help     Mostra questo messaggio di aiuto ed esce
+  -v, --version  Mostra le informazioni sulla versione ed esce
+
+Esempio:
+  cpgit mio-repo mio-repo-copia
+EOF
+}
+
+# Analisi delle opzioni
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "cpgit versione $VERSION"
+        exit 0
+        ;;
+esac
+
 # Controllo degli argomenti
 if [ "$#" -ne 2 ]; then
-    echo "Uso: $0 <cartella_origine> <cartella_destinazione>" >&2
+    echo "Errore: Numero di argomenti non valido." >&2
+    show_help >&2
     exit 1
 fi
 

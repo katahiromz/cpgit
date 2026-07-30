@@ -2,9 +2,40 @@
 
 set -e
 
+VERSION="1.1"
+
+# 帮助信息
+show_help() {
+    cat << EOF
+用法: cpgit [选项] <源目录> <目标目录>
+
+复制 Git 仓库并排除被忽略的文件，同时保留 .git 历史记录和子模块。
+
+选项:
+  -h, --help     显示此帮助信息并退出
+  -v, --version  显示版本信息并退出
+
+示例:
+  cpgit my-repo my-repo-copy
+EOF
+}
+
+# 解析选项
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "cpgit 版本 $VERSION"
+        exit 0
+        ;;
+esac
+
 # 检查参数
 if [ "$#" -ne 2 ]; then
-    echo "用法: $0 <源目录> <目标目录>" >&2
+    echo "错误: 参数数量无效。" >&2
+    show_help >&2
     exit 1
 fi
 

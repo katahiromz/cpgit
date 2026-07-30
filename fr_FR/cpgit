@@ -2,9 +2,40 @@
 
 set -e
 
+VERSION="1.1"
+
+# Message d'aide
+show_help() {
+    cat << EOF
+Usage : cpgit [OPTIONS] <répertoire_source> <répertoire_destination>
+
+Copie un dépôt Git en excluant les fichiers ignorés tout en conservant l'historique .git et les sous-modules.
+
+Options :
+  -h, --help     Afficher ce message d'aide et quitter
+  -v, --version  Afficher les informations de version et quitter
+
+Exemple :
+  cpgit mon-depot mon-depot-copie
+EOF
+}
+
+# Analyse des options
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "cpgit version $VERSION"
+        exit 0
+        ;;
+esac
+
 # Vérification des arguments
 if [ "$#" -ne 2 ]; then
-    echo "Usage : $0 <répertoire_source> <répertoire_destination>" >&2
+    echo "Erreur : Nombre d'arguments invalide." >&2
+    show_help >&2
     exit 1
 fi
 

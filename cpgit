@@ -2,9 +2,40 @@
 
 set -e
 
+VERSION="1.1"
+
+# Help message
+show_help() {
+    cat << EOF
+Usage: cpgit [OPTIONS] <source_directory> <destination_directory>
+
+Copy a Git repository excluding ignored files while preserving .git history and submodules.
+
+Options:
+  -h, --help     Show this help message and exit
+  -v, --version  Show version information and exit
+
+Examples:
+  cpgit my-repo my-repo-copy
+EOF
+}
+
+# Parse options
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "cpgit version $VERSION"
+        exit 0
+        ;;
+esac
+
 # Check arguments
 if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <source_directory> <destination_directory>" >&2
+    echo "Error: Invalid number of arguments." >&2
+    show_help >&2
     exit 1
 fi
 
