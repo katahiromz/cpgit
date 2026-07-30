@@ -32,10 +32,17 @@ fi
 # Create destination directory
 mkdir -p "$DEST"
 
-# 1. Export tracked files respecting .gitignore
-(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+# Copy using rsync, excluding ignored files and the .git directory initially
+# --exclude='.git' prevents copying git internal files via rsync
+# --filter=':- .gitignore' respects .gitignore rules recursively
+rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
 
-# 2. Copy the .git directory
+# Copy the main .git directory
 cp -r "$SRC/.git" "$DEST/.git"
 
-echo "Success: Copied '$SRC' to '$DEST' (ignored files excluded)."
+# If submodules exist in .git/modules, ensure they are also copied
+if [ -d "$SRC/.git/modules" ]; then
+    echo "Submodules detected and copied."
+fi
+
+echo "Success: Copied '$SRC' to '$DEST' (including submodules, ignored files excluded)."

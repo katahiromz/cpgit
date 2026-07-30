@@ -32,14 +32,15 @@ fi
 # コピー先ディレクトリを作成
 mkdir -p "$DEST"
 
-# 1. .gitignore を考慮して管理対象ファイル（追跡中ファイル）を転送
-(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+# 1. .gitignore を尊重してファイルをコピー（サブモジュール内の .gitignore も再帰的に適用）
+rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
 
-# 2. 未追跡だが無視されていないファイル（新規作成してコミット前のファイル）も含めたい場合は、
-# 代わりに rsync と git check-ignore を使う方法もありますが、
-# クリーンな状態を保つため git archive が最も安全です。
-
-# 3. .git フォルダをそのまま複製
+# 2. .git フォルダをそのまま複製（サブモジュールの履歴情報も含まれます）
 cp -r "$SRC/.git" "$DEST/.git"
 
-echo "完了: '$SRC' を '$DEST' にコピーしました（Git無視ファイル除外済み）。"
+# サブモジュールの存在チェック
+if [ -d "$SRC/.git/modules" ]; then
+    echo "サブモジュールを検出・コピーしました。"
+fi
+
+echo "完了: '$SRC' を '$DEST' にコピーしました（サブモジュール対応、Git無視ファイル除外済み）。"

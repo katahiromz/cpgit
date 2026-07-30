@@ -11,7 +11,7 @@ fi
 SRC="$1"
 DEST="$2"
 
-# Vérificationの存在 du répertoire source
+# Vérification de l'existence du répertoire source
 if [ ! -d "$SRC" ]; then
     echo "Erreur : La source '$SRC' n'existe pas ou n'est pas un répertoire." >&2
     exit 1
@@ -32,10 +32,15 @@ fi
 # Création du répertoire de destination
 mkdir -p "$DEST"
 
-# 1. Exporter les fichiers suivis en respectant le fichier .gitignore
-(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+# 1. Copier les fichiers en respectant .gitignore (y compris pour les sous-modules)
+rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
 
-# 2. Copier le dossier .git
+# 2. Copier le dossier .git (contient les informations des sous-modules)
 cp -r "$SRC/.git" "$DEST/.git"
 
-echo "Succès : '$SRC' a été copié vers '$DEST' (fichiers ignorés exclus)."
+# Vérification des sous-modules
+if [ -d "$SRC/.git/modules" ]; then
+    echo "Sous-modules détectés et copiés."
+fi
+
+echo "Succès : '$SRC' a été copié vers '$DEST' (sous-modules inclus, fichiers ignorés exclus)."

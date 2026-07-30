@@ -32,10 +32,15 @@ fi
 # 创建目标目录
 mkdir -p "$DEST"
 
-# 1. 忽略 .gitignore 中的文件，仅导出受版本控制的文件
-(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+# 1. 复制文件并遵循 .gitignore 规则（包括子模块中的规则）
+rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
 
-# 2. 复制 .git 目录
+# 2. 复制 .git 目录（包含子模块的相关信息）
 cp -r "$SRC/.git" "$DEST/.git"
 
-echo "成功: 已将 '$SRC' 复制到 '$DEST'（已排除忽略文件）。"
+# 检查子模块
+if [ -d "$SRC/.git/modules" ]; then
+    echo "已检测到并复制子模块。"
+fi
+
+echo "成功: 已将 '$SRC' 复制到 '$DEST'（包含子模块，已排除忽略文件）。"

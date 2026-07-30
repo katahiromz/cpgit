@@ -32,10 +32,15 @@ fi
 # Zielverzeichnis erstellen
 mkdir -p "$DEST"
 
-# 1. Nachverfolgte Dateien unter Berücksichtigung von .gitignore exportieren
-(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+# 1. Dateien unter Berücksichtigung von .gitignore kopieren (einschließlich Submodulen)
+rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
 
-# 2. Das .git-Verzeichnis kopieren
+# 2. Das .git-Verzeichnis kopieren (enthält Submodul-Informationen)
 cp -r "$SRC/.git" "$DEST/.git"
 
-echo "Erfolg: '$SRC' wurde nach '$DEST' kopiert (ignorierte Dateien ausgeschlossen)."
+# Submodule prüfen
+if [ -d "$SRC/.git/modules" ]; then
+    echo "Submodule erkannt und kopiert."
+fi
+
+echo "Erfolgreich: '$SRC' wurde nach '$DEST' kopiert (Submodule enthalten, ignorierte Dateien ausgeschlossen)."

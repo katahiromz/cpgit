@@ -32,10 +32,15 @@ fi
 # Creazione della cartella di destinazione
 mkdir -p "$DEST"
 
-# 1. Esportare i file tracciati rispettando il file .gitignore
-(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+# 1. Copiare i file rispettando il file .gitignore (inclusi i sottomoduli)
+rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
 
-# 2. Copiare la cartella .git
+# 2. Copiare la cartella .git (contiene le informazioni sui sottomoduli)
 cp -r "$SRC/.git" "$DEST/.git"
 
-echo "Successo: '$SRC' è stato copiato in '$DEST' (file ignorati esclusi)."
+# Controllo sottomoduli
+if [ -d "$SRC/.git/modules" ]; then
+    echo "Sottomoduli rilevati e copiati."
+fi
+
+echo "Successo: '$SRC' è stato copiato in '$DEST' (sottomoduli inclusi, file ignorati esclusi)."
