@@ -12,10 +12,9 @@
 
 1. **Clone or download** the `cpgit` script.
 2. **Make it executable:**
-   ```bash
-   chmod +x cpgit
+```bash
+chmod +x cpgit
 ```
-
 3. **Move it to a directory in your `PATH**` (optional, but recommended for global access):
 ```bash
 sudo mv cpgit /usr/local/bin/
@@ -42,4 +41,4 @@ This will create `my-project-copy`, containing only tracked Git files and the `.
 
 ## License
 
-[MIT](https://www.google.com/search?q=LICENSE)
+- [MIT](https://www.google.com/search?q=LICENSE)
