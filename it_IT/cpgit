@@ -29,13 +29,18 @@ if [ -e "$DEST" ]; then
     exit 1
 fi
 
-# Creazione della cartella di destinazione
-mkdir -p "$DEST"
+# Converti la destinazione in un percorso assoluto
+DEST_ABS="$(mkdir -p "$DEST" && cd "$DEST" && pwd)"
 
-# 1. Copiare i file rispettando il file .gitignore (inclusi i sottomoduli)
-rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
+# 1. Copiare solo i file tracciati (inclusi i sottomoduli)
+(
+    cd "$SRC"
+    git checkout-index -a -f --prefix="$DEST_ABS/"
+    git submodule --quiet foreach --recursive \
+        'git checkout-index -a -f --prefix="$DEST_ABS/$displaypath/"'
+)
 
-# 2. Copiare la cartella .git (contiene le informazioni sui sottomoduli)
+# 2. Copiare la cartella .git
 cp -r "$SRC/.git" "$DEST/.git"
 
 # Controllo sottomoduli

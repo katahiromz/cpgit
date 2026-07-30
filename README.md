@@ -4,15 +4,16 @@
 
 ## Features
 
-- **`.gitignore` Aware:** Excludes ignored files and build clutter recursively across the repository.
-- **Submodule Support:** Seamlessly handles repositories containing Git submodules without breaking references.
+- **`.gitignore` Aware:** Excludes ignored files and build clutter across the main project and submodules.
+- **Submodule Support:** Handles repositories containing nested Git submodules natively without breaking references.
+- **Zero Third-Party Dependencies:** Uses built-in `git` commands (`checkout-index`), removing the need for external tools like `rsync`.
 - **Preserves Git History:** Copies the `.git` directory so your commit history, branches, and remote settings remain intact.
 - **Safe Execution:** Checks for missing arguments, invalid source directories, missing `.git` folders, and existing destination paths before running.
 
 ## Prerequisites
 
 - `bash`
-- `rsync` (pre-installed on most macOS and Linux systems)
+- `git`
 
 ## Installation
 
@@ -42,8 +43,9 @@ This will create `my-project-copy`, containing only tracked Git files (including
 
 ## How It Works
 
-1. Uses `rsync` with the `--filter=':- .gitignore'` flag to copy non-ignored files recursively across all directories and submodules.
-2. Copies the original `.git` directory (including `.git/modules` for submodules) directly to the destination path.
+1. Uses `git checkout-index` to export only tracked files from the Git index directly to the destination path.
+2. Recursively iterates through any submodules using `git submodule foreach` to export their tracked files into the correct relative paths.
+3. Copies the original `.git` directory (including `.git/modules` for submodules) directly to the destination directory.
 
 ## License
 

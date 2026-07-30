@@ -29,13 +29,18 @@ if [ -e "$DEST" ]; then
     exit 1
 fi
 
-# Zielverzeichnis erstellen
-mkdir -p "$DEST"
+# Zielverzeichnis in absoluten Pfad umwandeln
+DEST_ABS="$(mkdir -p "$DEST" && cd "$DEST" && pwd)"
 
-# 1. Dateien unter Berücksichtigung von .gitignore kopieren (einschließlich Submodulen)
-rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
+# 1. Nur nachverfolgte Dateien kopieren (einschließlich Submodulen)
+(
+    cd "$SRC"
+    git checkout-index -a -f --prefix="$DEST_ABS/"
+    git submodule --quiet foreach --recursive \
+        'git checkout-index -a -f --prefix="$DEST_ABS/$displaypath/"'
+)
 
-# 2. Das .git-Verzeichnis kopieren (enthält Submodul-Informationen)
+# 2. Das .git-Verzeichnis kopieren
 cp -r "$SRC/.git" "$DEST/.git"
 
 # Submodule prüfen

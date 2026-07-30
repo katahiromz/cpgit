@@ -29,18 +29,21 @@ if [ -e "$DEST" ]; then
     exit 1
 fi
 
-# Create destination directory
-mkdir -p "$DEST"
+# Convert destination to absolute path before cd
+DEST_ABS="$(mkdir -p "$DEST" && cd "$DEST" && pwd)"
 
-# Copy using rsync, excluding ignored files and the .git directory initially
-# --exclude='.git' prevents copying git internal files via rsync
-# --filter=':- .gitignore' respects .gitignore rules recursively
-rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
+# 1. Copy all tracked files (including submodules) respecting .gitignore
+(
+    cd "$SRC"
+    git checkout-index -a -f --prefix="$DEST_ABS/"
+    git submodule --quiet foreach --recursive \
+        'git checkout-index -a -f --prefix="$DEST_ABS/$displaypath/"'
+)
 
-# Copy the main .git directory
+# 2. Copy the .git directory
 cp -r "$SRC/.git" "$DEST/.git"
 
-# If submodules exist in .git/modules, ensure they are also copied
+# Check if submodules were copied
 if [ -d "$SRC/.git/modules" ]; then
     echo "Submodules detected and copied."
 fi

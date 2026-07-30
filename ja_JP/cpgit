@@ -29,13 +29,18 @@ if [ -e "$DEST" ]; then
     exit 1
 fi
 
-# コピー先ディレクトリを作成
-mkdir -p "$DEST"
+# コピー先を絶対パスに変換（cd 対策）
+DEST_ABS="$(mkdir -p "$DEST" && cd "$DEST" && pwd)"
 
-# 1. .gitignore を尊重してファイルをコピー（サブモジュール内の .gitignore も再帰的に適用）
-rsync -a --exclude='.git' --filter=':- .gitignore' "$SRC/" "$DEST/"
+# 1. Gitの管理対象ファイルのみを展開（サブモジュールも再帰的に展開）
+(
+    cd "$SRC"
+    git checkout-index -a -f --prefix="$DEST_ABS/"
+    git submodule --quiet foreach --recursive \
+        'git checkout-index -a -f --prefix="$DEST_ABS/$displaypath/"'
+)
 
-# 2. .git フォルダをそのまま複製（サブモジュールの履歴情報も含まれます）
+# 2. .git フォルダをそのまま複製
 cp -r "$SRC/.git" "$DEST/.git"
 
 # サブモジュールの存在チェック
