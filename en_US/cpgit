@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+# Check arguments
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <source_directory> <destination_directory>" >&2
+    exit 1
+fi
+
+SRC="$1"
+DEST="$2"
+
+# Check if source directory exists
+if [ ! -d "$SRC" ]; then
+    echo "Error: Source '$SRC' does not exist or is not a directory." >&2
+    exit 1
+fi
+
+# Check if source directory is a Git repository
+if [ ! -d "$SRC/.git" ]; then
+    echo "Error: Source '$SRC' does not contain a .git directory." >&2
+    exit 1
+fi
+
+# Check if destination directory already exists
+if [ -e "$DEST" ]; then
+    echo "Error: Destination '$DEST' already exists." >&2
+    exit 1
+fi
+
+# Create destination directory
+mkdir -p "$DEST"
+
+# 1. Export tracked files respecting .gitignore
+(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+
+# 2. Copy the .git directory
+cp -r "$SRC/.git" "$DEST/.git"
+
+echo "Success: Copied '$SRC' to '$DEST' (ignored files excluded)."

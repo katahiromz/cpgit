@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+# Vérification des arguments
+if [ "$#" -ne 2 ]; then
+    echo "Usage : $0 <répertoire_source> <répertoire_destination>" >&2
+    exit 1
+fi
+
+SRC="$1"
+DEST="$2"
+
+# Vérificationの存在 du répertoire source
+if [ ! -d "$SRC" ]; then
+    echo "Erreur : La source '$SRC' n'existe pas ou n'est pas un répertoire." >&2
+    exit 1
+fi
+
+# Vérification si le répertoire source est un dépôt Git
+if [ ! -d "$SRC/.git" ]; then
+    echo "Erreur : La source '$SRC' ne contient pas de dossier .git." >&2
+    exit 1
+fi
+
+# Vérification si le répertoire de destination existe déjà
+if [ -e "$DEST" ]; then
+    echo "Erreur : La destination '$DEST' existe déjà." >&2
+    exit 1
+fi
+
+# Création du répertoire de destination
+mkdir -p "$DEST"
+
+# 1. Exporter les fichiers suivis en respectant le fichier .gitignore
+(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+
+# 2. Copier le dossier .git
+cp -r "$SRC/.git" "$DEST/.git"
+
+echo "Succès : '$SRC' a été copié vers '$DEST' (fichiers ignorés exclus)."

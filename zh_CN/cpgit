@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+# 检查参数
+if [ "$#" -ne 2 ]; then
+    echo "用法: $0 <源目录> <目标目录>" >&2
+    exit 1
+fi
+
+SRC="$1"
+DEST="$2"
+
+# 检查源目录是否存在
+if [ ! -d "$SRC" ]; then
+    echo "错误: 源目录 '$SRC' 不存在或不是一个目录。" >&2
+    exit 1
+fi
+
+# 检查源目录是否为 Git 仓库
+if [ ! -d "$SRC/.git" ]; then
+    echo "错误: 源目录 '$SRC' 中未找到 .git 文件夹。" >&2
+    exit 1
+fi
+
+# 检查目标目录是否已存在
+if [ -e "$DEST" ]; then
+    echo "错误: 目标目录 '$DEST' 已经存在。" >&2
+    exit 1
+fi
+
+# 创建目标目录
+mkdir -p "$DEST"
+
+# 1. 忽略 .gitignore 中的文件，仅导出受版本控制的文件
+(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+
+# 2. 复制 .git 目录
+cp -r "$SRC/.git" "$DEST/.git"
+
+echo "成功: 已将 '$SRC' 复制到 '$DEST'（已排除忽略文件）。"

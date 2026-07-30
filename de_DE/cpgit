@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+# Argumente überprüfen
+if [ "$#" -ne 2 ]; then
+    echo "Verwendung: $0 <Quellverzeichnis> <Zielverzeichnis>" >&2
+    exit 1
+fi
+
+SRC="$1"
+DEST="$2"
+
+# Überprüfen, ob das Quellverzeichnis existiert
+if [ ! -d "$SRC" ]; then
+    echo "Fehler: Quelle '$SRC' existiert nicht oder ist kein Verzeichnis." >&2
+    exit 1
+fi
+
+# Überprüfen, ob die Quelle ein Git-Repository ist
+if [ ! -d "$SRC/.git" ]; then
+    echo "Fehler: Quelle '$SRC' enthält keinen .git-Ordner." >&2
+    exit 1
+fi
+
+# Überprüfen, ob das Zielverzeichnis bereits existiert
+if [ -e "$DEST" ]; then
+    echo "Fehler: Ziel '$DEST' existiert bereits." >&2
+    exit 1
+fi
+
+# Zielverzeichnis erstellen
+mkdir -p "$DEST"
+
+# 1. Nachverfolgte Dateien unter Berücksichtigung von .gitignore exportieren
+(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+
+# 2. Das .git-Verzeichnis kopieren
+cp -r "$SRC/.git" "$DEST/.git"
+
+echo "Erfolg: '$SRC' wurde nach '$DEST' kopiert (ignorierte Dateien ausgeschlossen)."

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+# Controllo degli argomenti
+if [ "$#" -ne 2 ]; then
+    echo "Uso: $0 <cartella_origine> <cartella_destinazione>" >&2
+    exit 1
+fi
+
+SRC="$1"
+DEST="$2"
+
+# Verifica se la cartella di origine esiste
+if [ ! -d "$SRC" ]; then
+    echo "Errore: L'origine '$SRC' non esiste o non è una cartella." >&2
+    exit 1
+fi
+
+# Verifica se l'origine è un repository Git
+if [ ! -d "$SRC/.git" ]; then
+    echo "Errore: L'origine '$SRC' non contiene una cartella .git." >&2
+    exit 1
+fi
+
+# Verifica se la cartella di destinazione esiste già
+if [ -e "$DEST" ]; then
+    echo "Errore: La destinazione '$DEST' esiste già." >&2
+    exit 1
+fi
+
+# Creazione della cartella di destinazione
+mkdir -p "$DEST"
+
+# 1. Esportare i file tracciati rispettando il file .gitignore
+(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+
+# 2. Copiare la cartella .git
+cp -r "$SRC/.git" "$DEST/.git"
+
+echo "Successo: '$SRC' è stato copiato in '$DEST' (file ignorati esclusi)."

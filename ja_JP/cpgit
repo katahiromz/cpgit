@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e
+
+# 引数チェック
+if [ "$#" -ne 2 ]; then
+    echo "使用方法: $0 <コピー元フォルダ> <コピー先フォルダ>" >&2
+    exit 1
+fi
+
+SRC="$1"
+DEST="$2"
+
+# コピー元が存在するか
+if [ ! -d "$SRC" ]; then
+    echo "エラー: コピー元 '$SRC' が存在しないか、ディレクトリではありません。" >&2
+    exit 1
+fi
+
+# コピー元がGitリポジトリか
+if [ ! -d "$SRC/.git" ]; then
+    echo "エラー: コピー元 '$SRC' に .git フォルダが見つかりません。" >&2
+    exit 1
+fi
+
+# コピー先が既に存在するか確認
+if [ -e "$DEST" ]; then
+    echo "エラー: コピー先 '$DEST' は既に存在します。" >&2
+    exit 1
+fi
+
+# コピー先ディレクトリを作成
+mkdir -p "$DEST"
+
+# 1. .gitignore を考慮して管理対象ファイル（追跡中ファイル）を転送
+(cd "$SRC" && git archive HEAD) | (cd "$DEST" && tar -x)
+
+# 2. 未追跡だが無視されていないファイル（新規作成してコミット前のファイル）も含めたい場合は、
+# 代わりに rsync と git check-ignore を使う方法もありますが、
+# クリーンな状態を保つため git archive が最も安全です。
+
+# 3. .git フォルダをそのまま複製
+cp -r "$SRC/.git" "$DEST/.git"
+
+echo "完了: '$SRC' を '$DEST' にコピーしました（Git無視ファイル除外済み）。"
